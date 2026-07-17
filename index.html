@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GRFA — Taller de Escritura Académica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --ink:#1C2541;
+    --ink-soft:#4a5578;
+    --paper:#EEEDE5;
+    --paper-card:#FBFAF6;
+    --rule:#D7D4C6;
+    --pen:#A3402F;
+    --pen-soft:#f1ded9;
+    --gold:#B8862E;
+    --gold-soft:#f2e6c9;
+    --moss:#4C6B4F;
+    --moss-soft:#dde7dc;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold-soft);}
+
+  /* ---------- Shell ---------- */
+  .shell{
+    max-width:980px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+  }
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:18px;
+    margin-bottom:36px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  h1.brand{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,38px);
+    margin:0;
+    letter-spacing:-.01em;
+  }
+  .brand em{
+    font-style:italic;
+    color:var(--pen);
+  }
+  .unad-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:right;
+    line-height:1.5;
+  }
+
+  /* ---------- Stepper (notebook spine) ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:180px 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width:720px){
+    .layout{grid-template-columns:1fr;}
+    .spine{
+      display:flex;
+      flex-direction:row;
+      overflow-x:auto;
+      gap:0;
+      padding-bottom:8px;
+    }
+  }
+  .spine{
+    position:sticky;
+    top:24px;
+    display:flex;
+    flex-direction:column;
+    border-left:2px solid var(--rule);
+    padding-left:0;
+  }
+  .step-btn{
+    all:unset;
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px 0 14px 18px;
+    margin-left:-2px;
+    border-left:2px solid transparent;
+    position:relative;
+  }
+  .step-btn .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    min-width:16px;
+  }
+  .step-btn .label{
+    font-size:13.5px;
+    line-height:1.35;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  .step-btn.active{ border-left:2px solid var(--pen); }
+  .step-btn.active .num, .step-btn.active .label{ color:var(--ink); font-weight:600; }
+  .step-btn.done .num::after{ content:"✓"; margin-left:4px; color:var(--moss); }
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:32px 34px;
+    position:relative;
+    box-shadow:0 1px 0 var(--rule);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:-1px; left:24px; right:24px; height:1px;
+    background:repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 12px);
+  }
+  .card h2{
+    font-family:'Source Serif 4',serif;
+    font-size:23px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .card .intro{
+    color:var(--ink-soft);
+    font-size:14.5px;
+    line-height:1.55;
+    margin:0 0 26px;
+    max-width:60ch;
+  }
+
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:.02em;
+  }
+  .field{ margin-bottom:20px; }
+  input[type=text], textarea, select{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:10px 12px;
+    resize:vertical;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{
+    outline:2px solid var(--gold);
+    outline-offset:1px;
+    border-color:var(--gold);
+  }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:600px){ .grid2{ grid-template-columns:1fr; } }
+
+  .btn{
+    all:unset;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:.03em;
+    padding:11px 18px;
+    border-radius:var(--radius);
+    transition:transform .12s ease;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ background:#0f1730; }
+  .btn-primary:disabled{ background:#9aa0b5; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--rule); }
+  .btn-ghost:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .btn-row{ display:flex; justify-content:space-between; margin-top:28px; gap:10px; flex-wrap:wrap; }
+
+  /* ---------- Prompt block ---------- */
+  .prompt-block{
+    background:var(--gold-soft);
+    border:1px solid #e2cd93;
+    border-left:3px solid var(--gold);
+    padding:16px 18px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    line-height:1.6;
+    color:#5c4413;
+    margin-bottom:22px;
+    border-radius:var(--radius);
+  }
+  .prompt-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--gold);
+    margin-bottom:8px;
+    font-weight:600;
+  }
+
+  /* ---------- Annotations (signature element) ---------- */
+  .annot-wrap{ margin-top:26px; }
+  .annot{
+    display:grid;
+    grid-template-columns:22px 1fr;
+    gap:0;
+    margin-bottom:22px;
+  }
+  .annot .rule-col{
+    border-left:2px dashed var(--pen);
+    margin-left:8px;
+  }
+  .annot-body{ padding:0 0 0 18px; }
+  .annot-crit{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:16.5px;
+    color:var(--pen);
+    margin:0 0 8px;
+  }
+  .annot-line{ font-size:14px; line-height:1.55; margin:0 0 6px; }
+  .annot-line b{ font-weight:600; color:var(--ink); }
+  .annot-q{
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    margin-top:6px;
+  }
+
+  .status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:14px 0;
+  }
+  .status.err{ color:var(--pen); }
+
+  /* ---------- Matrix table ---------- */
+  table.matrix{ width:100%; border-collapse:collapse; margin-top:8px; }
+  table.matrix th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#fff;
+    background:var(--ink);
+    padding:10px 12px;
+  }
+  table.matrix td{
+    border:1px solid var(--rule);
+    padding:10px 12px;
+    vertical-align:top;
+    font-size:13.5px;
+  }
+  table.matrix td.crit{
+    font-weight:600;
+    background:var(--paper);
+    white-space:nowrap;
+  }
+  table.matrix textarea{ min-height:70px; font-size:13px; }
+
+  .summary-box{
+    margin-top:28px;
+    border:1px solid var(--moss);
+    background:var(--moss-soft);
+    padding:16px 18px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .summary-box b{ color:var(--moss); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:6px;}
+
+  /* ---------- Diagnóstico inicial ---------- */
+  .diagnostic{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+    border:1px solid var(--pen);
+    background:var(--pen-soft);
+    padding:18px 20px;
+    border-radius:var(--radius);
+    margin-bottom:28px;
+  }
+  .diagnostic .score{
+    font-family:'Source Serif 4',serif;
+    font-size:34px;
+    font-weight:700;
+    color:var(--pen);
+    line-height:1;
+    white-space:nowrap;
+  }
+  .diagnostic .score span{ font-size:16px; color:var(--ink-soft); font-family:'Inter',sans-serif; }
+  .diagnostic .lvl{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    background:var(--pen);
+    color:#fff;
+    padding:3px 9px;
+    border-radius:12px;
+    margin-bottom:8px;
+  }
+  .diagnostic p{ font-size:13.5px; line-height:1.55; margin:0; color:var(--ink); }
+
+  .crit-level{ display:flex; align-items:center; gap:5px; margin:2px 0 8px; }
+  .crit-level .dot{ width:8px; height:8px; border-radius:50%; background:var(--rule); display:inline-block; }
+  .crit-level .dot.on{ background:var(--pen); }
+  .crit-level .lbl{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); margin-left:4px; }
+
+  /* ---------- Panel del tutor ---------- */
+  .tutor-toggle{
+    all:unset; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    border:1px solid var(--rule);
+    padding:6px 10px;
+    border-radius:var(--radius);
+    display:inline-block;
+    margin-top:8px;
+  }
+  .tutor-toggle:hover{ border-color:var(--ink); color:var(--ink); }
+  table.tutor{ width:100%; border-collapse:collapse; margin-top:18px; }
+  table.tutor th{
+    background:var(--ink); color:#fff;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.06em;
+    padding:9px 10px; text-align:left;
+  }
+  table.tutor td{ border:1px solid var(--rule); padding:9px 10px; font-size:13px; vertical-align:top; }
+  table.tutor tr:nth-child(even) td{ background:#f5f4ee; }
+  .trend-up{ color:var(--moss); font-weight:600; }
+  .trend-down{ color:var(--pen); font-weight:600; }
+  .trend-flat{ color:var(--ink-soft); }
+  .save-note{ font-size:12px; color:var(--ink-soft); margin-top:10px; line-height:1.5; }
+  .save-ok{ color:var(--moss); font-weight:600; }
+
+  /* ---------- Estadísticas de uso y avance por ciclo ---------- */
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px;
+    margin:18px 0 8px;
+  }
+  .stat-box{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:14px 16px;
+  }
+  .stat-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .stat-value{
+    font-family:'Source Serif 4',serif;
+    font-size:24px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0;
+    line-height:1;
+  }
+  .chart-title{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin:22px 0 8px;
+  }
+  .chart-wrap{
+    position:relative;
+    width:100%;
+    height:260px;
+    margin:0 0 24px;
+  }
+
+  footer.foot{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:11.5px;
+    font-family:'IBM Plex Mono',monospace;
+    margin-top:48px;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Taller de escritura</p>
+      <h1 class="brand">Taller de escritura <em>acompañada</em></h1>
+    </div>
+    <div class="unad-tag">
+      GRFA<br/>Guía de Retroalimentación<br/>Formativa Asistida por IA
+      <br/><button class="tutor-toggle" id="tutor-toggle-btn">Panel del tutor →</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="spine" id="spine"></nav>
+    <main id="main"></main>
+  </div>
+
+  <footer class="foot">La IA señala, tú decides — la reescritura siempre es tuya.<br/>Katheriny Anaya</footer>
+</div>
+
+<script>
+(function(){
+  const state = {
+    step: 0,
+    view: "student", // "student" | "tutor"
+    ficha: { nombre:"", curso:"", fecha:"", ciclo:"1", idea:"", dificultad:"", tipo:"" },
+    texto: "",
+    feedback: null, // {diagnostico:{puntaje_global,nivel,fortalecer}, criteria:[{name,nivel,fortaleza,debilidad,pregunta}]}
+    matrix: {}, // name -> {acuerdo, accion}
+    reflexion: "",
+    savedMsg: "",
+    tutor: { loading:false, students:null, error:"" }
+  };
+
+  const CRITERIA = ["Coherencia","Cohesión","Argumentación","Normas APA"];
+  const STEPS = [
+    { label:"Ficha de autorregulación" },
+    { label:"Chequeo automático" },
+    { label:"Matriz y reescritura" }
+  ];
+
+  const CHECK_DESCRIPTION = "Este chequeo automático no usa inteligencia artificial: analiza tu texto con reglas fijas "+
+    "y no lo corrige ni lo reescribe. Revisa cuatro criterios: "+
+    "1) Cohesión — presencia de conectores lógicos entre ideas (sin embargo, por lo tanto, además...). "+
+    "2) Coherencia — número de párrafos y longitud promedio de las oraciones. "+
+    "3) Argumentación — presencia de frases que marcan una tesis y de referencias a evidencia o datos. "+
+    "4) Normas APA — presencia de citas con formato (Autor, año) y de una sección de referencias. "+
+    "Para cada criterio obtienes un nivel de 1 a 5, una fortaleza, una debilidad y una pregunta orientadora "+
+    "para que mejores el texto por ti mismo.";
+
+  const storageApi = {
+    async set(key, value){
+      try{
+        const res = await fetch("/.netlify/functions/records", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ action:"set", key, value })
+        });
+        if(!res.ok) return null;
+        return { key, value };
+      }catch(e){ return null; }
+    },
+    async get(key){
+      const res = await fetch("/.netlify/functions/records", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ action:"get", key })
+      });
+      if(!res.ok) throw new Error("No encontrado: " + key);
+      const data = await res.json();
+      return { key, value: data.value };
+    },
+    async list(prefix){
+      const res = await fetch("/.netlify/functions/records", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ action:"list", prefix })
+      });
+      if(!res.ok) return { keys: [] };
+      return await res.json();
+    }
+  };
+
+  function slug(s){
+    return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]+/g,"-").replace(/(^-+|-+$)/g,"") || "sin-nombre";
+  }
+  function studentId(){ return slug(state.ficha.nombre) + "__" + slug(state.ficha.curso); }
+
+  function el(tag, attrs, children){
+    const e = document.createElement(tag);
+    if(attrs) for(const k in attrs){
+      if(k === "class") e.className = attrs[k];
+      else if(k === "html") e.innerHTML = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children||[]).forEach(c => { if(c) e.appendChild(c); });
+    return e;
+  }
+  function text(t){ return document.createTextNode(t); }
+
+  function renderSpine(){
+    const spine = document.getElementById("spine");
+    spine.innerHTML = "";
+    STEPS.forEach((s, i) => {
+      const btn = el("button", { class: "step-btn" + (i===state.step?" active":"") + (i<state.step?" done":"") });
+      btn.appendChild(el("span",{class:"num"}, [text(String(i+1).padStart(2,"0"))]));
+      btn.appendChild(el("span",{class:"label"}, [text(s.label)]));
+      btn.onclick = () => { state.step = i; render(); };
+      spine.appendChild(btn);
+    });
+  }
+
+  function fieldText(labelStr, value, onInput, opts){
+    opts = opts || {};
+    const wrap = el("div",{class:"field"});
+    wrap.appendChild(el("label",{},[text(labelStr)]));
+    const input = document.createElement(opts.area ? "textarea" : "input");
+    if(!opts.area) input.type = "text";
+    if(opts.area) input.rows = opts.rows || 3;
+    input.value = value || "";
+    input.placeholder = opts.placeholder || "";
+    input.oninput = (e) => onInput(e.target.value);
+    wrap.appendChild(input);
+    return wrap;
+  }
+
+  function renderStep1(container){
+    container.appendChild(el("h2",{},[text("Parte 1 · Ficha de autorregulación")]));
+    container.appendChild(el("p",{class:"intro"},[text("Antes de recibir retroalimentación, responde estas preguntas. Esto activa tu reflexión antes de recibir el chequeo automático.")]));
+
+    const grid = el("div",{class:"grid2"});
+    grid.appendChild(fieldText("Nombre", state.ficha.nombre, v => state.ficha.nombre = v));
+    grid.appendChild(fieldText("Curso / actividad", state.ficha.curso, v => state.ficha.curso = v));
+    container.appendChild(grid);
+
+    const grid2 = el("div",{class:"grid2"});
+    grid2.appendChild(fieldText("Fecha", state.ficha.fecha, v => state.ficha.fecha = v, {placeholder:"dd/mm/aaaa"}));
+    const cicloWrap = el("div",{class:"field"});
+    cicloWrap.appendChild(el("label",{},[text("Ciclo de escritura")]));
+    const sel = el("select",{});
+    ["1","2","3"].forEach(v=>{
+      const o = el("option",{value:v},[text("Ciclo "+v)]);
+      if(state.ficha.ciclo===v) o.setAttribute("selected","selected");
+      sel.appendChild(o);
+    });
+    sel.onchange = e => state.ficha.ciclo = e.target.value;
+    cicloWrap.appendChild(sel);
+    grid2.appendChild(cicloWrap);
+    container.appendChild(grid2);
+
+    container.appendChild(fieldText("¿Cuál es la idea principal de tu texto?", state.ficha.idea, v => state.ficha.idea = v, {area:true}));
+    container.appendChild(fieldText("¿Qué parte te generó más dificultad al escribir?", state.ficha.dificultad, v => state.ficha.dificultad = v, {area:true}));
+    container.appendChild(fieldText("¿Qué tipo de retroalimentación necesitas? (estructura, argumentación, redacción, normas APA)", state.ficha.tipo, v => state.ficha.tipo = v, {area:true}));
+
+    const row = el("div",{class:"btn-row"});
+    row.appendChild(el("span",{}));
+    const next = el("button",{class:"btn btn-primary"},[text("Continuar al protocolo →")]);
+    next.onclick = () => { state.step = 1; render(); };
+    row.appendChild(next);
+    container.appendChild(row);
+  }
+
+  function clampLevel(n){ return Math.max(1, Math.min(5, Math.round(n))); }
+
+  function buildCriterionFeedback(name, nivel, ctx){
+    const alto = nivel >= 4;
+    if(name === "Cohesión"){
+      return {
+        name, nivel,
+        fortaleza: alto
+          ? "Se detectaron " + ctx.conectoresCount + " conector(es) lógico(s), lo que ayuda a enlazar las ideas entre párrafos."
+          : "Se detectaron " + ctx.conectoresCount + " conector(es) lógico(s) en el texto.",
+        debilidad: alto
+          ? "Revisa que los conectores usados sean variados y no se repitan siempre los mismos."
+          : "El texto puede sentirse fragmentado; faltan palabras de enlace entre oraciones y párrafos (ej. sin embargo, por lo tanto, además).",
+        pregunta: "¿Qué palabra de enlace podrías agregar al inicio de cada párrafo para mostrar cómo se conecta con el anterior?"
+      };
+    }
+    if(name === "Coherencia"){
+      return {
+        name, nivel,
+        fortaleza: "El texto está organizado en " + ctx.paragraphs.length + " párrafo(s), con un promedio de " +
+          Math.round(ctx.avgSentenceLen) + " palabras por oración.",
+        debilidad: ctx.paragraphs.length <= 1
+          ? "Todo el texto está en un solo bloque; dividirlo en varios párrafos, cada uno con una idea central, facilitaría seguir el hilo."
+          : (ctx.avgSentenceLen > 25
+              ? "Las oraciones son largas en promedio, lo que puede dificultar seguir la idea completa."
+              : "Revisa que cada párrafo desarrolle una sola idea central, sin mezclar varias."),
+        pregunta: "¿Podrías resumir en una sola frase la idea principal de cada párrafo? Si no puedes, ese párrafo quizás mezcla varias ideas."
+      };
+    }
+    if(name === "Argumentación"){
+      return {
+        name, nivel,
+        fortaleza: ctx.tesisCount > 0
+          ? "El texto presenta al menos una frase que marca una postura o tesis."
+          : (ctx.evidenciaCount > 0
+              ? "Se identifican referencias a evidencia o datos que respaldan lo dicho."
+              : "El texto plantea ideas, aunque de forma general."),
+        debilidad: ctx.tesisCount === 0
+          ? "No se identifica una frase clara donde se establezca la tesis o postura central del texto."
+          : (ctx.evidenciaCount === 0
+              ? "La tesis no aparece respaldada con evidencia, datos o autores citados."
+              : "Revisa que cada afirmación importante quede sustentada con evidencia, no solo enunciada."),
+        pregunta: "¿En qué oración exacta de tu texto se identifica tu tesis o postura principal? Si no existe todavía, ¿cuál sería?"
+      };
+    }
+    // Normas APA
+    return {
+      name, nivel,
+      fortaleza: ctx.citas > 0
+        ? "Se detectaron " + ctx.citas + " cita(s) con formato similar a (Autor, año)."
+        : "—",
+      debilidad: ctx.citas === 0
+        ? "No se detectaron citas con formato APA, del tipo (Autor, año), en el texto."
+        : (!ctx.tieneReferencias
+            ? "Se detectan citas en el cuerpo del texto, pero no una sección de referencias al final."
+            : "Verifica que cada cita en el texto tenga su entrada correspondiente en la lista de referencias, y viceversa."),
+      pregunta: "¿Cada afirmación que no es tuya tiene su cita (Autor, año), y esa fuente aparece en la lista de referencias?"
+    };
+  }
+
+  function buildFortalecer(scores, ctx){
+    const entries = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+    const weakest = entries[0][0];
+    return "Este chequeo automático (sin IA) identificó \"" + weakest + "\" como el criterio con menor puntaje, " +
+      "a partir de patrones detectados en " + ctx.wordCount + " palabras distribuidas en " + ctx.paragraphs.length +
+      " párrafo(s). Se recomienda priorizar ese aspecto en la próxima revisión, y recordar que este chequeo detecta " +
+      "patrones de escritura, no reemplaza la lectura de un tutor humano.";
+  }
+
+  function analyzeTextRules(texto){
+    const raw = texto.trim();
+    const paragraphs = raw.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    const sentences = raw.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    const words = raw.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+    const avgSentenceLen = sentences.length ? wordCount / sentences.length : wordCount;
+    const lowerText = raw.toLowerCase();
+
+    const CONECTORES = ["sin embargo","por lo tanto","además","no obstante","asimismo","en consecuencia",
+      "por otro lado","así mismo","en primer lugar","en segundo lugar","finalmente","en conclusión",
+      "cabe destacar","es decir","por ejemplo","en contraste","de igual manera","en efecto","por consiguiente",
+      "de este modo","en definitiva","por su parte","en síntesis"];
+    const conectoresCount = CONECTORES.reduce((acc,c) => acc + (lowerText.split(c).length - 1), 0);
+
+    const TESIS = ["sostengo que","se argumenta que","considero que","el objetivo de este","se plantea que",
+      "esta tesis","este ensayo busca","el presente trabajo","se propone demostrar"];
+    const EVIDENCIA = ["según","de acuerdo con","los estudios muestran","los datos indican","estadísticas",
+      "esto demuestra","la evidencia sugiere","como señala","como afirma"];
+    const tesisCount = TESIS.reduce((acc,t) => acc + (lowerText.includes(t) ? 1 : 0), 0);
+    const evidenciaCount = EVIDENCIA.reduce((acc,t) => acc + (lowerText.includes(t) ? 1 : 0), 0);
+
+    const citaRegex = /\([A-ZÁÉÍÓÚÑ][a-zA-ZñÑáéíóúÁÉÍÓÚ.]*(?:(?:,|\sy\s|\s&\s|\set al\.)\s?[A-ZÁÉÍÓÚÑ][a-zA-ZñÑáéíóúÁÉÍÓÚ.]*)*,?\s\d{4}\)/g;
+    const citas = (raw.match(citaRegex) || []).length;
+    const tieneReferencias = /referencias/i.test(raw) || /bibliograf/i.test(raw);
+
+    let cohesionScore = clampLevel(1 + (conectoresCount / Math.max(1, paragraphs.length)) * 2.2);
+
+    let coherenciaScore = 3;
+    if(paragraphs.length >= 4) coherenciaScore += 1;
+    if(paragraphs.length <= 1) coherenciaScore -= 1;
+    if(avgSentenceLen >= 10 && avgSentenceLen <= 25) coherenciaScore += 1;
+    else coherenciaScore -= 1;
+    coherenciaScore = clampLevel(coherenciaScore);
+
+    let argumentacionScore = clampLevel(2 + tesisCount + Math.min(2, evidenciaCount));
+
+    let apaScore = 1;
+    if(citas >= 1) apaScore += 1;
+    if(citas >= 3) apaScore += 1;
+    if(tieneReferencias) apaScore += 2;
+    apaScore = clampLevel(apaScore);
+
+    const scores = { "Coherencia": coherenciaScore, "Cohesión": cohesionScore, "Argumentación": argumentacionScore, "Normas APA": apaScore };
+    const ctx = { conectoresCount, paragraphs, avgSentenceLen, tesisCount, evidenciaCount, citas, tieneReferencias, wordCount };
+
+    const criteria = CRITERIA.map(name => buildCriterionFeedback(name, scores[name], ctx));
+
+    const puntaje_global = clampLevel((coherenciaScore + cohesionScore + argumentacionScore + apaScore) / 4);
+    const nivel = puntaje_global <= 1 ? "Inicial" : puntaje_global <= 3 ? "En proceso" : puntaje_global === 4 ? "Consolidado" : "Avanzado";
+    const fortalecer = buildFortalecer(scores, ctx);
+
+    return { diagnostico: { puntaje_global, nivel, fortalecer }, criteria };
+  }
+
+  function callAI(){
+    const errBox = document.getElementById("ai-status");
+    const btn = document.getElementById("ai-btn");
+    if(!state.texto || state.texto.trim().length < 30){
+      errBox.textContent = "Pega un texto de al menos unas líneas antes de solicitar retroalimentación.";
+      errBox.classList.add("err");
+      return;
+    }
+    btn.disabled = true;
+    errBox.classList.remove("err");
+    errBox.textContent = "Analizando el texto según los cuatro criterios…";
+    try{
+      const result = analyzeTextRules(state.texto);
+      state.feedback = result;
+      CRITERIA.forEach(c => { if(!state.matrix[c]) state.matrix[c] = { acuerdo:"Parcial", accion:"" }; });
+      errBox.textContent = "";
+      render();
+    }catch(err){
+      console.error(err);
+      errBox.textContent = "No fue posible generar la retroalimentación: " + err.message;
+      errBox.classList.add("err");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  function renderStep2(container){
+    container.appendChild(el("h2",{},[text("Parte 2 · Chequeo automático de escritura")]));
+    container.appendChild(el("p",{class:"intro"},[text("Pega tu texto. Un chequeo automático por reglas (sin IA) señala fortalezas, debilidades y preguntas orientadoras — nunca reescribe por ti.")]));
+
+    const promptBlock = el("div",{class:"prompt-block"});
+    promptBlock.appendChild(el("div",{class:"prompt-label"},[text("Qué revisa este chequeo automático")]));
+    promptBlock.appendChild(el("div",{},[text(CHECK_DESCRIPTION)]));
+    container.appendChild(promptBlock);
+
+    container.appendChild(fieldText("Tu texto (borrador a evaluar)", state.texto, v => state.texto = v, {area:true, rows:8, placeholder:"Pega aquí tu ensayo o borrador…"}));
+
+    const btn = el("button",{class:"btn btn-primary", id:"ai-btn"},[text("Obtener retroalimentación automática")]);
+    btn.onclick = callAI;
+    container.appendChild(btn);
+    container.appendChild(el("p",{class:"status", id:"ai-status"},[]));
+
+    if(state.feedback && state.feedback.diagnostico){
+      const d = state.feedback.diagnostico;
+      const diag = el("div",{class:"diagnostic"});
+      diag.appendChild(el("div",{class:"score"},[text(String(d.puntaje_global)), el("span",{},[text("/5")])]));
+      const body = el("div",{});
+      body.appendChild(el("span",{class:"lvl"},[text("Nivel inicial: " + d.nivel)]));
+      body.appendChild(el("p",{},[text("Qué fortalecer: " + d.fortalecer)]));
+      diag.appendChild(body);
+      container.appendChild(diag);
+    }
+
+    if(state.feedback && state.feedback.criteria){
+      const wrap = el("div",{class:"annot-wrap"});
+      state.feedback.criteria.forEach(c => {
+        const annot = el("div",{class:"annot"});
+        annot.appendChild(el("div",{class:"rule-col"}));
+        const body = el("div",{class:"annot-body"});
+        body.appendChild(el("p",{class:"annot-crit"},[text(c.name)]));
+        if(c.nivel){
+          const lvl = el("div",{class:"crit-level"});
+          for(let i=1;i<=5;i++) lvl.appendChild(el("span",{class:"dot"+(i<=c.nivel?" on":"")}));
+          lvl.appendChild(el("span",{class:"lbl"},[text("nivel "+c.nivel+"/5")]));
+          body.appendChild(lvl);
+        }
+        body.appendChild(el("p",{class:"annot-line"},[el("b",{},[text("Fortaleza — ")]),text(c.fortaleza)]));
+        body.appendChild(el("p",{class:"annot-line"},[el("b",{},[text("A trabajar — ")]),text(c.debilidad)]));
+        body.appendChild(el("p",{class:"annot-q"},[text("¿ "+c.pregunta)]));
+        annot.appendChild(body);
+        wrap.appendChild(annot);
+      });
+      container.appendChild(wrap);
+    }
+
+    const row = el("div",{class:"btn-row"});
+    const back = el("button",{class:"btn btn-ghost"},[text("← Volver a la ficha")]);
+    back.onclick = () => { state.step = 0; render(); };
+    row.appendChild(back);
+    const next = el("button",{class:"btn btn-primary"},[text("Continuar a la matriz →")]);
+    next.disabled = !state.feedback;
+    next.onclick = () => { if(state.feedback){ state.step = 2; render(); } };
+    row.appendChild(next);
+    container.appendChild(row);
+  }
+
+  function renderStep3(container){
+    container.appendChild(el("h2",{},[text("Parte 3 · Matriz de análisis crítico y reescritura")]));
+    container.appendChild(el("p",{class:"intro"},[text("Decide si estás de acuerdo con cada observación y define una acción concreta antes de reescribir.")]));
+
+    if(!state.feedback){
+      container.appendChild(el("p",{class:"status err"},[text("Primero obtén la retroalimentación automática en la Parte 2.")]));
+    } else {
+      const table = el("table",{class:"matrix"});
+      const thead = el("tr",{});
+      ["Criterio","Retroalimentación recibida","¿De acuerdo?","Acción de mejora"].forEach(h => thead.appendChild(el("th",{},[text(h)])));
+      table.appendChild(thead);
+
+      state.feedback.criteria.forEach(c => {
+        const row = el("tr",{});
+        row.appendChild(el("td",{class:"crit"},[text(c.name)]));
+        const fbCell = el("td",{});
+        if(c.nivel) fbCell.appendChild(el("p",{class:"annot-line"},[el("b",{},[text("Nivel: ")]),text(c.nivel+"/5")]));
+        fbCell.appendChild(el("p",{class:"annot-line"},[el("b",{},[text("Fortaleza: ")]),text(c.fortaleza)]));
+        fbCell.appendChild(el("p",{class:"annot-line"},[el("b",{},[text("A trabajar: ")]),text(c.debilidad)]));
+        fbCell.appendChild(el("p",{class:"annot-q"},[text(c.pregunta)]));
+        row.appendChild(fbCell);
+
+        const acuerdoCell = el("td",{});
+        const sel = el("select",{});
+        ["Sí","No","Parcial"].forEach(v=>{
+          const o = el("option",{value:v},[text(v)]);
+          if(state.matrix[c.name].acuerdo===v) o.setAttribute("selected","selected");
+          sel.appendChild(o);
+        });
+        sel.onchange = e => state.matrix[c.name].acuerdo = e.target.value;
+        acuerdoCell.appendChild(sel);
+        row.appendChild(acuerdoCell);
+
+        const accionCell = el("td",{});
+        const ta = el("textarea",{});
+        ta.value = state.matrix[c.name].accion;
+        ta.oninput = e => state.matrix[c.name].accion = e.target.value;
+        accionCell.appendChild(ta);
+        row.appendChild(accionCell);
+
+        table.appendChild(row);
+      });
+      container.appendChild(table);
+
+      container.appendChild(fieldText("Autoevaluación reflexiva: ¿qué cambiarás en tu texto y por qué?", state.reflexion, v => state.reflexion = v, {area:true, rows:4}));
+
+      const summary = el("div",{class:"summary-box"});
+      summary.appendChild(el("b",{},[text("Registro para el tutor")]));
+      summary.appendChild(text(
+        (state.ficha.nombre||"—") + " · " + (state.ficha.curso||"—") + " · Ciclo " + state.ficha.ciclo +
+        " · nivel inicial " + (state.feedback.diagnostico ? state.feedback.diagnostico.puntaje_global+"/5" : "—")
+      ));
+      container.appendChild(summary);
+
+      const actions = el("div",{},[]);
+      actions.style.marginTop = "18px";
+      actions.style.display = "flex";
+      actions.style.flexWrap = "wrap";
+      actions.style.gap = "10px";
+
+      const saveBtn = el("button",{class:"btn btn-primary", id:"save-btn"},[text("Guardar mi progreso")]);
+      saveBtn.onclick = saveRecord;
+      actions.appendChild(saveBtn);
+
+      const wordBtn = el("button",{class:"btn btn-ghost"},[text("Descargar retroalimentación (Word)")]);
+      wordBtn.onclick = downloadWord;
+      actions.appendChild(wordBtn);
+
+      const dl = el("button",{class:"btn btn-ghost"},[text("Descargar registro (.txt)")]);
+      dl.onclick = downloadRecord;
+      actions.appendChild(dl);
+
+      container.appendChild(actions);
+      container.appendChild(el("p",{class:"save-note", id:"save-status"},[
+        text("Al guardar, tu ficha, tu diagnóstico y tu avance por ciclo quedan visibles para tu tutor, con el fin de analizar tu progreso académico.")
+      ]));
+    }
+
+    const row = el("div",{class:"btn-row"});
+    const back = el("button",{class:"btn btn-ghost"},[text("← Volver al protocolo")]);
+    back.onclick = () => { state.step = 1; render(); };
+    row.appendChild(back);
+    container.appendChild(row);
+  }
+
+  function downloadRecord(){
+    let out = "GRFA — Registro de retroalimentación formativa\n";
+    out += "================================================\n\n";
+    out += "Estudiante: " + state.ficha.nombre + "\n";
+    out += "Curso: " + state.ficha.curso + "\n";
+    out += "Fecha: " + state.ficha.fecha + "\n";
+    out += "Ciclo: " + state.ficha.ciclo + "\n\n";
+    out += "Idea principal: " + state.ficha.idea + "\n";
+    out += "Dificultad señalada: " + state.ficha.dificultad + "\n";
+    out += "Tipo de retroalimentación solicitada: " + state.ficha.tipo + "\n\n";
+    out += "Texto evaluado:\n" + state.texto + "\n\n";
+    if(state.feedback && state.feedback.diagnostico){
+      out += "Nivel inicial de escritura: " + state.feedback.diagnostico.puntaje_global + "/5 (" + state.feedback.diagnostico.nivel + ")\n";
+      out += "Qué fortalecer: " + state.feedback.diagnostico.fortalecer + "\n\n";
+    }
+    out += "Retroalimentación y matriz de análisis:\n";
+    (state.feedback ? state.feedback.criteria : []).forEach(c => {
+      out += "\n- " + c.name + "\n";
+      out += "  Fortaleza: " + c.fortaleza + "\n";
+      out += "  A trabajar: " + c.debilidad + "\n";
+      out += "  Pregunta orientadora: " + c.pregunta + "\n";
+      out += "  ¿De acuerdo?: " + (state.matrix[c.name]?.acuerdo||"") + "\n";
+      out += "  Acción de mejora: " + (state.matrix[c.name]?.accion||"") + "\n";
+    });
+    out += "\nAutoevaluación reflexiva:\n" + state.reflexion + "\n";
+
+    const blob = new Blob([out], {type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "GRFA_registro_" + (state.ficha.nombre || "estudiante").replace(/\s+/g,"_") + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function saveRecord(){
+    const status = document.getElementById("save-status");
+    const btn = document.getElementById("save-btn");
+    if(!state.ficha.nombre || !state.ficha.curso){
+      status.textContent = "Completa al menos tu nombre y curso en la Parte 1 antes de guardar.";
+      status.classList.add("err");
+      return;
+    }
+    btn.disabled = true;
+    const key = "record:" + studentId() + ":" + state.ficha.ciclo;
+    const payload = {
+      nombre: state.ficha.nombre, curso: state.ficha.curso, fecha: state.ficha.fecha, ciclo: state.ficha.ciclo,
+      diagnostico: state.feedback.diagnostico, criterios: state.feedback.criteria,
+      matrix: state.matrix, reflexion: state.reflexion, guardado: new Date().toISOString()
+    };
+    try{
+      const result = await storageApi.set(key, JSON.stringify(payload));
+      if(result){
+        status.innerHTML = "";
+        status.appendChild(el("span",{class:"save-ok"},[text("✓ Guardado. ")]));
+        status.appendChild(text("Tu tutor podrá ver tu diagnóstico y tu avance por ciclo."));
+        status.classList.remove("err");
+      } else {
+        status.textContent = "No se pudo guardar el registro. Intenta de nuevo.";
+        status.classList.add("err");
+      }
+    }catch(err){
+      console.error(err);
+      status.textContent = "No se pudo guardar el registro. Intenta de nuevo.";
+      status.classList.add("err");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  function buildWordHTML(){
+    const d = state.feedback.diagnostico || {};
+    let rows = "";
+    (state.feedback.criteria||[]).forEach(c => {
+      rows += "<tr>"+
+        "<td><b>"+c.name+"</b></td>"+
+        "<td>"+(c.nivel||"—")+"/5</td>"+
+        "<td>"+c.fortaleza+"</td>"+
+        "<td>"+c.debilidad+"</td>"+
+        "<td><i>"+c.pregunta+"</i></td>"+
+        "<td>"+((state.matrix[c.name]&&state.matrix[c.name].acuerdo)||"")+"</td>"+
+        "<td>"+((state.matrix[c.name]&&state.matrix[c.name].accion)||"")+"</td>"+
+      "</tr>";
+    });
+    return "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' "+
+      "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'>"+
+      "<title>Retroalimentación GRFA</title></head>"+
+      "<body style='font-family:Calibri,Arial,sans-serif; font-size:11pt; color:#1C2541;'>"+
+      "<h1 style='color:#1C2541; font-size:20pt;'>Retroalimentación formativa — GRFA</h1>"+
+      "<p><b>Estudiante:</b> "+state.ficha.nombre+" &nbsp; <b>Curso:</b> "+state.ficha.curso+
+        " &nbsp; <b>Fecha:</b> "+state.ficha.fecha+" &nbsp; <b>Ciclo:</b> "+state.ficha.ciclo+"</p>"+
+      "<h2 style='color:#A3402F; font-size:14pt;'>Nivel inicial de escritura</h2>"+
+      "<p><b>Puntaje:</b> "+(d.puntaje_global||"—")+"/5 &nbsp; <b>Nivel:</b> "+(d.nivel||"—")+"</p>"+
+      "<p><b>Qué fortalecer:</b> "+(d.fortalecer||"")+"</p>"+
+      "<h2 style='color:#A3402F; font-size:14pt;'>Retroalimentación por criterio</h2>"+
+      "<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse; width:100%;'>"+
+      "<tr style='background:#1C2541; color:#ffffff;'><th>Criterio</th><th>Nivel</th><th>Fortaleza</th>"+
+      "<th>A trabajar</th><th>Pregunta orientadora</th><th>¿De acuerdo?</th><th>Acción de mejora</th></tr>"+
+      rows+"</table>"+
+      "<h2 style='color:#A3402F; font-size:14pt;'>Autoevaluación reflexiva</h2>"+
+      "<p>"+(state.reflexion||"—")+"</p>"+
+      "</body></html>";
+  }
+
+  function downloadWord(){
+    if(!state.feedback) return;
+    const html = buildWordHTML();
+    const blob = new Blob(['\ufeff', html], {type:"application/msword"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Retroalimentacion_" + slug(state.ficha.nombre) + "_ciclo" + state.ficha.ciclo + ".doc";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function loadTutorData(){
+    state.tutor.loading = true;
+    state.tutor.error = "";
+    renderTutorPanel();
+    try{
+      const list = await storageApi.list("record:");
+      const keys = (list && list.keys) || [];
+      const byStudent = {};
+      for(const k of keys){
+        try{
+          const r = await storageApi.get(k);
+          if(!r) continue;
+          const data = JSON.parse(r.value);
+          const parts = k.split(":"); // record : studentId : ciclo
+          const sid = parts[1];
+          if(!byStudent[sid]) byStudent[sid] = { nombre:data.nombre, curso:data.curso, ciclos:{} };
+          byStudent[sid].ciclos[data.ciclo] = data;
+        }catch(e){ /* skip malformed key */ }
+      }
+      state.tutor.students = byStudent;
+    }catch(err){
+      console.error(err);
+      state.tutor.error = "No fue posible cargar los registros guardados.";
+    }finally{
+      state.tutor.loading = false;
+      renderTutorPanel();
+    }
+  }
+
+  let cycleChartInstance = null;
+
+  function computeCycleStats(students){
+    const cycles = ["1","2","3"];
+    const counts = [], avgs = [];
+    cycles.forEach(c => {
+      const scores = [];
+      Object.values(students).forEach(s => {
+        const d = s.ciclos[c];
+        if(d && d.diagnostico && d.diagnostico.puntaje_global != null){
+          scores.push(Number(d.diagnostico.puntaje_global));
+        }
+      });
+      counts.push(scores.length);
+      avgs.push(scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : null);
+    });
+    return { cycles, counts, avgs };
+  }
+
+  function renderStatsSection(card, students){
+    const stats = computeCycleStats(students);
+    const totalEstudiantes = Object.keys(students).length;
+    const totalRegistros = stats.counts.reduce((a,b)=>a+b,0);
+    const ciclosConDatos = stats.counts.filter(c => c > 0).length;
+    const validAvgs = stats.avgs.filter(v => v != null);
+    const promedioGeneral = validAvgs.length
+      ? (validAvgs.reduce((a,b)=>a+b,0)/validAvgs.length).toFixed(1)
+      : "—";
+
+    card.appendChild(el("p",{class:"chart-title"},[text("Estadísticas de uso y avance por ciclo")]));
+
+    const grid = el("div",{class:"stats-grid"});
+    [
+      ["Estudiantes con registro", totalEstudiantes],
+      ["Registros guardados (uso)", totalRegistros],
+      ["Ciclos con datos", ciclosConDatos],
+      ["Promedio general", promedioGeneral === "—" ? "—" : promedioGeneral + "/5"]
+    ].forEach(([label, value]) => {
+      const box = el("div",{class:"stat-box"});
+      box.appendChild(el("p",{class:"stat-label"},[text(label)]));
+      box.appendChild(el("p",{class:"stat-value"},[text(String(value))]));
+      grid.appendChild(box);
+    });
+    card.appendChild(grid);
+
+    const chartWrap = el("div",{class:"chart-wrap"});
+    const canvas = el("canvas",{id:"cycleStatsChart"});
+    canvas.setAttribute("role","img");
+    canvas.setAttribute("aria-label","Gráfico de registros guardados y promedio de puntaje por ciclo de escritura");
+    chartWrap.appendChild(canvas);
+    card.appendChild(chartWrap);
+
+    return stats;
+  }
+
+  function drawCycleChart(stats){
+    const canvas = document.getElementById("cycleStatsChart");
+    if(!canvas || !window.Chart) return;
+    if(cycleChartInstance){ cycleChartInstance.destroy(); }
+    cycleChartInstance = new Chart(canvas, {
+      data: {
+        labels: stats.cycles.map(c => "Ciclo " + c),
+        datasets: [
+          {
+            type: "bar",
+            label: "Registros guardados",
+            data: stats.counts,
+            backgroundColor: "#A3402F",
+            borderRadius: 2,
+            yAxisID: "y"
+          },
+          {
+            type: "line",
+            label: "Promedio (1-5)",
+            data: stats.avgs,
+            borderColor: "#4C6B4F",
+            backgroundColor: "#4C6B4F",
+            borderWidth: 2,
+            pointRadius: 5,
+            pointBackgroundColor: "#4C6B4F",
+            tension: 0.3,
+            spanGaps: true,
+            yAxisID: "y1"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: "#1C2541", font: { family: "Inter", size: 12 } } }
+        },
+        scales: {
+          y: {
+            position: "left", beginAtZero: true,
+            ticks: { precision: 0, color: "#4a5578" },
+            grid: { color: "#D7D4C6" },
+            title: { display: true, text: "Registros", color: "#4a5578", font: { size: 11 } }
+          },
+          y1: {
+            position: "right", min: 0, max: 5,
+            ticks: { color: "#4a5578" },
+            grid: { display: false },
+            title: { display: true, text: "Puntaje", color: "#4a5578", font: { size: 11 } }
+          },
+          x: { ticks: { color: "#4a5578" }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function trendBadge(first, last){
+    if(first==null || last==null || first===last) return el("span",{class:"trend-flat"},[text("— sin cambio")]);
+    if(last > first) return el("span",{class:"trend-up"},[text("↑ +"+(last-first).toFixed(1)+" pts")]);
+    return el("span",{class:"trend-down"},[text("↓ "+(last-first).toFixed(1)+" pts")]);
+  }
+
+  function renderTutorPanel(){
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const card = el("div",{class:"card"});
+    card.appendChild(el("h2",{},[text("Panel del tutor")]));
+    card.appendChild(el("p",{class:"intro"},[text("Estadísticas de uso y avance por ciclo de todo el taller, calculadas en vivo a partir del progreso guardado.")]));
+
+    const back = el("button",{class:"btn btn-ghost"},[text("← Volver al taller")]);
+    back.onclick = () => { state.view = "student"; render(); };
+    card.appendChild(back);
+
+    if(state.tutor.loading){
+      card.appendChild(el("p",{class:"status"},[text("Cargando registros…")]));
+    } else if(state.tutor.error){
+      card.appendChild(el("p",{class:"status err"},[text(state.tutor.error)]));
+    } else if(!state.tutor.students || Object.keys(state.tutor.students).length === 0){
+      card.appendChild(el("p",{class:"status"},[text("Aún no hay estudiantes con progreso guardado.")]));
+    } else {
+      const cycleStats = renderStatsSection(card, state.tutor.students);
+      main.appendChild(card);
+      drawCycleChart(cycleStats);
+      return;
+    }
+    main.appendChild(card);
+  }
+
+  function render(){
+    if(state.view === "tutor"){
+      document.getElementById("spine").innerHTML = "";
+      if(state.tutor.students === null && !state.tutor.loading) loadTutorData();
+      else renderTutorPanel();
+      return;
+    }
+    renderSpine();
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    const card = el("div",{class:"card"});
+    if(state.step === 0) renderStep1(card);
+    else if(state.step === 1) renderStep2(card);
+    else renderStep3(card);
+    main.appendChild(card);
+  }
+
+  document.getElementById("tutor-toggle-btn").onclick = () => { state.view = "tutor"; render(); };
+
+  render();
+})();
+</script>
+</body>
+</html>
