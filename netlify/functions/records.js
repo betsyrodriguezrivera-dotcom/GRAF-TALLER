@@ -1,10 +1,17 @@
 // Netlify Function: /.netlify/functions/records
 // Reemplaza a window.storage usando Netlify Blobs como almacén clave-valor,
 // compartido entre todos los estudiantes y el tutor (un solo "store" para el taller).
+//
+// Nota técnica: las funciones clásicas de Netlify (formato exports.handler) corren en
+// "modo de compatibilidad Lambda". Netlify Blobs no recibe su configuración automática
+// en ese modo a menos que se llame a connectLambda(event) al inicio del handler.
+// Esa es la causa de los errores anteriores (MissingBlobsEnvironmentError / BlobsInternalError).
 
-const { getStore } = require("@netlify/blobs");
+const { getStore, connectLambda } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
+  connectLambda(event);
+
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Método no permitido." }) };
   }
@@ -19,23 +26,11 @@ exports.handler = async (event) => {
   const { action, key, value, prefix } = body;
 
   try {
-    const siteIdPresent = !!process.env.NETLIFY_SITE_ID;
-    const tokenPresent = !!process.env.NETLIFY_BLOBS_TOKEN;
-
     if (action === "debug") {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          NETLIFY_SITE_ID_presente: siteIdPresent,
-          NETLIFY_BLOBS_TOKEN_presente: tokenPresent
-        })
-      };
+      return { statusCode: 200, body: JSON.stringify({ ok: true, mensaje: "connectLambda inicializado correctamente." }) };
     }
 
-    const storeOptions = (siteIdPresent && tokenPresent)
-      ? { name: "grfa-records", siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_BLOBS_TOKEN }
-      : "grfa-records";
-    const store = getStore(storeOptions);
+    const store = getStore("grfa-records");
 
     if (action === "set") {
       if (!key) return { statusCode: 400, body: JSON.stringify({ error: "Falta la clave." }) };
