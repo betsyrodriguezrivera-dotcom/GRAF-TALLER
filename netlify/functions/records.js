@@ -17,9 +17,26 @@ exports.handler = async (event) => {
   }
 
   const { action, key, value, prefix } = body;
-  const store = getStore("grfa-records");
 
   try {
+    const siteIdPresent = !!process.env.NETLIFY_SITE_ID;
+    const tokenPresent = !!process.env.NETLIFY_BLOBS_TOKEN;
+
+    if (action === "debug") {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          NETLIFY_SITE_ID_presente: siteIdPresent,
+          NETLIFY_BLOBS_TOKEN_presente: tokenPresent
+        })
+      };
+    }
+
+    const storeOptions = (siteIdPresent && tokenPresent)
+      ? { name: "grfa-records", siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_BLOBS_TOKEN }
+      : "grfa-records";
+    const store = getStore(storeOptions);
+
     if (action === "set") {
       if (!key) return { statusCode: 400, body: JSON.stringify({ error: "Falta la clave." }) };
       await store.set(key, value);
@@ -46,6 +63,12 @@ exports.handler = async (event) => {
 
     return { statusCode: 400, body: JSON.stringify({ error: "Acción no reconocida: " + action }) };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Error interno de almacenamiento." }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: err.message || "Error interno de almacenamiento.",
+        tipo: err.name || err.errorType || "desconocido"
+      })
+    };
   }
 };
